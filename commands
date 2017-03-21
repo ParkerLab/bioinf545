@@ -1,0 +1,83 @@
+#!/bin/bash
+
+set -e  # stop at any error
+
+LAB_DIR="${HOME}/bioinf545/labs/atac-seq"
+
+mkdir -p $LAB_DIR
+
+cd $LAB_DIR
+
+LAB_DATA="${1:-/class/data/bio545/atac-seq-lab}"
+REF_DIR="${2:-${LAB_DATA}}"
+REF="${3:-hg19}"
+PICARD_JAR="${4:-${LAB_DATA}/picard.jar}"
+
+export R_LIBS_SITE=${LAB_DATA}/R/%p/%v
+
+
+# Copy lab scripts and input data
+cp ${LAB_DATA}/*.gz ${LAB_DIR}
+cp ${LAB_DATA}/*.R ${LAB_DIR}
+
+export PATH=${LAB_DATA}:${LAB_DATA}/ve/bin:$PATH
+
+# Run FastQC on the file of first reads
+fastqc SRR891268.1.fq.gz
+
+# check FastQC output
+# firefox SRR891268.1_fastqc.html
+
+# Trim adapter content from the reads
+trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
+
+# Check the results of trimming
+# zdiff -u SRR891268.1.fq.gz SRR891268.1.trimmed.fastq.gz | less
+
+# Align the trimmed reads to the human reference genome
+bwa mem -t 4 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
+
+# Mark duplicate aligned reads
+java -Xmx8g -jar ${PICARD_JAR} MarkDuplicates I=SRR891268.bam O=SRR891268.md.bam ASSUME_SORTED=true METRICS_FILE=SRR891268.markdup.metrics VALIDATION_STRINGENCY=LENIENT
+
+# Index the BAM file of aligned reads with duplicates marked
+samtools index SRR891268.md.bam
+
+# Filter the aligned reads to produce a file of high-quality, properly paired and mapped unique alignments to autosomal references
+export CHROMOSOMES=$(samtools view -H SRR891268.md.bam | grep '^@SQ' | cut -f 2 | grep -v -e _ -e chrM -e chrX -e chrY -e 'VN:' | sed 's/SN://' | xargs echo); samtools view -b -h -f 3 -F 4 -F 8 -F 256 -F 1024 -F 2048 -q 30 SRR891268.md.bam $CHROMOSOMES > SRR891268.pruned.bam
+
+# Index the pruned BAM
+samtools index SRR891268.pruned.bam
+
+# Call peaks -- find regions enriched for ATAC-seq transpositions
+macs2 callpeak -t SRR891268.pruned.bam -n SRR891268.broad -g hs -q 0.05 --nomodel --shift -100 --extsize 200 -B --broad
+
+# Create a bigWig file from the MACS2 output, so we can look at the peaks in the UCSC Genome Browser
+LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
+bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
+
+# Create signal matrix for CENTIPEDE. The make_cut_matrix program
+# takes a BAM file containing aligned ATAC-seq reads and a BED file
+# containing occurrences of a given motif in the reference genome, as
+# found by the FIMO program from the MEME suite. FIMO finds these
+# locations given a transcription factor-specific position weight
+# matrix that matches sequence motifs to which the TF is known to
+# bind. make_cut_matrix measures ATAC-seq transposition events around
+# the motif locations, which CENTIPEDE will use in determining the
+# probability that the locations are bound by the transcription
+# factor.
+make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
+
+# Run CENTIPEDE with the matrix just generated (which contains a row
+# of ATAC-seq transposition events around each motif location) and the
+# BED file fed to make_cut_matrix. The FIMO score is in field 8 of the
+# input BED file.
+Rscript run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
+
+
+# Extract the probably-bound motifs -- those to which CENTIPEDE
+# assigned a posterior probability of at least 0.99. Its score is in
+# the last column of its output. The awk command filters CENTIPEDE
+# output for the 0.99 threshold, printing only the fields necessary to
+# create a BED track in the UCSC Genome Browser.
+zcat NA12878.CTCF_known2.centipede.bed.gz | awk 'BEGIN{IFS="\t"; OFS="\t"} $NF > 0.99 {print $1,$2,$3,$4,$5,$6,$NF}' | gzip > NA12878.CTCF_known2.bound.bed.gz
