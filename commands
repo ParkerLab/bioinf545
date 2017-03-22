@@ -17,8 +17,9 @@ export R_LIBS_SITE=${LAB_DATA}/R/%p/%v
 
 
 # Copy lab scripts and input data
-cp ${LAB_DATA}/*.gz ${LAB_DIR}
 cp ${LAB_DATA}/*.R ${LAB_DIR}
+cp ${LAB_DATA}/*.gz ${LAB_DIR}
+cp ${LAB_DATA}/*.meme ${LAB_DIR}
 
 export PATH=${LAB_DATA}:${LAB_DATA}/ve/bin:$PATH
 
@@ -55,6 +56,21 @@ macs2 callpeak -t SRR891268.pruned.bam -n SRR891268.broad -g hs -q 0.05 --nomode
 # Create a bigWig file from the MACS2 output, so we can look at the peaks in the UCSC Genome Browser
 LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
 bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
+
+#
+# Create background file for chromosome 20
+#
+zcat chr20.fa.gz | fasta-get-markov /dev/stdin chr20.bg
+
+#
+# Find CTCF motifs on chromosome 20
+#
+zcat chr20.fa.gz | fimo -bgfile chr20.bg CTCF_known2.meme /dev/stdin
+
+#
+# Convert FIMO output GFF to a BED file
+#
+gff2bed < fimo_out/fimo.gff | awk 'BEGIN {IFS="\t"; OFS="\t";} {print $1,$2,$3,$4,$5,$6}' | gzip > NA12878.CTCF_known2.chr20.bed.gz
 
 # Create signal matrix for CENTIPEDE. The make_cut_matrix program
 # takes a BAM file containing aligned ATAC-seq reads and a BED file

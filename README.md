@@ -24,8 +24,8 @@ background and a `$` shell prompt at the start of each command, like
 this:
 
 ```bash
-$ echo "This is a command."
-$ echo "This is another command."
+echo "This is a command."
+echo "This is another command."
 ```
 
 To run each command, copy the entire line _after_ the `$` and paste it
@@ -38,29 +38,30 @@ home directory by copying and pasting the commands after the dollar
 signs below:
 
 ```bash
-$ export LAB_DIR=~/bioinf545/labs/atac-seq
-$ mkdir -p $LAB_DIR && cd $LAB_DIR
+export LAB_DIR=~/bioinf545/labs/atac-seq
+mkdir -p $LAB_DIR && cd $LAB_DIR
 ```
 
 Set a few environment variables to reduce typing later:
 
 ```bash
-$ export LAB_DATA="/class/data/bio545/atac-seq-lab"
-$ export REF_DIR=${LAB_DATA}
-$ export REF=hg19
-$ export PICARD_JAR="${LAB_DATA}/picard.jar"
-$ export R_LIBS_SITE=${LAB_DATA}/R/%p/%v
+export LAB_DATA="/class/data/bio545/atac-seq-lab"
+export REF_DIR=${LAB_DATA}
+export REF=hg19
+export PICARD_JAR="${LAB_DATA}/picard.jar"
+export R_LIBS_SITE=${LAB_DATA}/R/%p/%v
 ```
 
 ```bash
-$ cp ${LAB_DATA}/*.gz ${LAB_DIR}
-$ cp ${LAB_DATA}/*.R ${LAB_DIR}
+cp ${LAB_DATA}/*.R ${LAB_DIR}
+cp ${LAB_DATA}/*.gz ${LAB_DIR}
+cp ${LAB_DATA}/*.meme ${LAB_DIR}
 ```
 
 Make sure we're running the right versions of the tools:
 
 ```bash
-$ export PATH=${LAB_DATA}:${LAB_DATA}/ve/bin:$PATH
+export PATH=${LAB_DATA}:${LAB_DATA}/ve/bin:$PATH
 ```
 
 ## Retrieval of sequence data
@@ -112,7 +113,7 @@ download the data. You also need to have the NCBI SRA tools installed,
 so you can use fastq-dump:
 
 ```bash
-$ fastq-dump --gzip --split-files SRR891268
+fastq-dump --gzip --split-files SRR891268
 ```
 
 The `--split-files` argument is used to download into two files, one
@@ -127,13 +128,13 @@ FastQC performs some basic quality control checks on raw sequence
 data. To check the ATAC-seq reads, run:
 
 ```bash
-$ fastqc SRR891268.1.fq.gz
+fastqc SRR891268.1.fq.gz
 ```
 
 When it completes, open the HTML report in a web browser with:
 
 ```bash
-$ firefox SRR891268.1_fastqc.html
+firefox SRR891268.1_fastqc.html
 ```
 
 Note the section on adapter contamination. How does this look?
@@ -152,14 +153,14 @@ used. Other tools generally need to be told, or can sometimes guess,
 using a list of known adapters. The command line:
 
 ```bash
-$ trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
+trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
 ```
 
 When it's done, compare the first few reads in the original and
 trimmed files of first reads:
 
 ```bash
-$ zdiff -u SRR891268.1.fq.gz SRR891268.1.trimmed.fastq.gz | less
+zdiff -u SRR891268.1.fq.gz SRR891268.1.trimmed.fastq.gz | less
 ```
 
 You should see something like this, where the lines marked with `+`
@@ -193,7 +194,7 @@ With the adapter cleanup complete, we can finally align the reads to a
 reference genome and see where the ATAC-seq transpositions happened.
 
 ```bash
-$ bwa mem -t 4 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
+bwa mem -t 4 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
 ```
 
 We specify bwa's `mem` algorithm, and give it both files of paired-end
@@ -259,7 +260,7 @@ explains how it identifies duplicates.
 Here's the command:
 
 ```bash
-$ java -Xmx8g -jar ${PICARD_JAR} MarkDuplicates I=SRR891268.bam O=SRR891268.md.bam ASSUME_SORTED=true METRICS_FILE=SRR891268.markdup.metrics VALIDATION_STRINGENCY=LENIENT
+java -Xmx8g -jar ${PICARD_JAR} MarkDuplicates I=SRR891268.bam O=SRR891268.md.bam ASSUME_SORTED=true METRICS_FILE=SRR891268.markdup.metrics VALIDATION_STRINGENCY=LENIENT
 ```
 
 The output will be a BAM file containing all of bwa's output, with
@@ -269,15 +270,14 @@ have no need for them later in the pipeline.
 Now we need to index the BAM file with duplicates marked:
 
 ```bash
-$ samtools index SRR891268.md.bam
+samtools index SRR891268.md.bam
 ```
 
 Finally, we'll sift out the good alignments -- reads that mapped
 uniquely, with good quality, to autosomal references:
 
-
 ```bash
-$ export CHROMOSOMES=$(samtools view -H SRR891268.md.bam | grep '^@SQ' | cut -f 2 | grep -v -e _ -e chrM -e chrX -e chrY -e 'VN:' | sed 's/SN://' | xargs echo); samtools view -b -h -f 3 -F 4 -F 8 -F 256 -F 1024 -F 2048 -q 30 SRR891268.md.bam $CHROMOSOMES > SRR891268.pruned.bam
+export CHROMOSOMES=$(samtools view -H SRR891268.md.bam | grep '^@SQ' | cut -f 2 | grep -v -e _ -e chrM -e chrX -e chrY -e 'VN:' | sed 's/SN://' | xargs echo); samtools view -b -h -f 3 -F 4 -F 8 -F 256 -F 1024 -F 2048 -q 30 SRR891268.md.bam $CHROMOSOMES > SRR891268.pruned.bam
 ```
 
 Yes, really. You'll see complicated commands strung together like this
@@ -318,8 +318,7 @@ tools can use to annotate aligned reads.
   indicating chimeric alignments, where bwa decided that parts of the
   read mapped to different regions in the genome. These records are
   the individual aligned segments of the read. They usually indicate
-  structural variation. We're not going to base peak calls on
-  them.
+  structural variation. We're not going to base peak calls on them.
 
 Finally, we use a basic quality filter, `-q 30`, to request
 high-quality alignments.
@@ -331,7 +330,7 @@ for regions with lots of transposition events, which indicate open
 chromatin.
 
 ```bash
-$ macs2 callpeak -t SRR891268.pruned.bam -n SRR891268.broad -g hs -q 0.05 --nomodel --shift -100 --extsize 200 -B --broad
+macs2 callpeak -t SRR891268.pruned.bam -n SRR891268.broad -g hs -q 0.05 --nomodel --shift -100 --extsize 200 -B --broad
 ```
 
 The arguments are:
@@ -357,8 +356,8 @@ on the entire data, not the subset we're working with in the lab, but
 this is how you would create a track for the called peaks:
 
 ```bash
-$ LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
-$ bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
+LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
+bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
 
 ```
 
@@ -416,9 +415,32 @@ can be described with a position weight matrix (PWM). We can use these
 PWMs to search the reference genome for all of a transcription
 factor's potential binding sites. For this, we use a program called
 FIMO from the MEME Suite (http://meme-suite.org/doc/fimo.html). FIMO
-builds a BED file of motif locations scored according to their PWM. It
-also takes more time than we have in this lab, so we're going to be
-using a file made in advance, with motif locations on chromosome 1.
+builds a file of motif locations scored according to their PWM.
+
+As input, FIMO needs a FASTA file containing the reference in which
+you want to find motifs, a MEME-format file describing motifs, and
+optionally a background file containing the background nucleotide
+frequencies in the reference. In the interest of time, we're going to
+use chromosome 20 to illustrate FIMO usage.
+
+To create the background file, run `fasta-get-markov`:
+
+```bash
+zcat chr20.fa.gz | fasta-get-markov /dev/stdin chr20.bg
+```
+
+To find motifs:
+
+```bash
+zcat chr20.fa.gz | fimo -bgfile chr20.bg CTCF_known2.meme /dev/stdin
+```
+
+FIMO's output goes into a `fimo_out` dir. The motifs are in a GFF
+file, which you can convert to BED format with:
+
+```bash
+gff2bed < fimo_out/fimo.gff | awk 'BEGIN {IFS="\t"; OFS="\t";} {print $1,$2,$3,$4,$5,$6}' | gzip > NA12878.CTCF_known2.chr20.bed.gz
+```
 
 For TF footprinting, we use a program called CENTIPEDE
 (http://centipede.uchicago.edu/), which combines binding site
@@ -429,13 +451,15 @@ binding site.
 To present the experimental data to CENTIPEDE, we've written a script
 called `make_cut_matrix` to count ATAC-seq transposition events around
 putative binding sites. Its input is an indexed BAM file (we'll have
-to make sure to index the pruned BAM file we just created). Its output
-is a matrix which can be passed to CENTIPEDE along with the binding
-site motifs found by FIMO. Here's how to run it:
+to make sure to index the pruned BAM file we just created) and the BED
+file of binding site motifs found by FIMO. Its output is a matrix
+which can be passed to CENTIPEDE along with the BED file of binding
+site motifs found by FIMO. Here's how to run it, using FIMO results
+from chromosome 1:
 
 ```bash
-$ samtools index SRR891268.pruned.bam
-$ make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
+samtools index SRR891268.pruned.bam
+make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
 ```
 
 Finally, we've written an R script to invoke CENTIPEDE called,
@@ -443,7 +467,7 @@ predictably enough, `run_centipede.R`. Here's the command to predict
 bound TFs in the lab data:
 
 ```bash
-$ Rscript run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
+Rscript run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
 ```
 
 The arguments are the matrix, the list of motif locations, the name of
@@ -468,3 +492,13 @@ browser position chr17:37,887,327-37,937,426
 track name="Predicted bound CTCF motifs in GM12878" description="Predicted bound CTCF motifs in GM12878" visibility=full color=0,128,64 alwaysZero=on maxHeightPixels=50:50:50 windowingFunction=mean smoothingWindow=3
 https://theparkerlab.med.umich.edu/gb/tracks/bioinf545/SRR891268.CTCF_known2.bound.bed
 ```
+
+To see all of this put together in the entire human reference genome,
+explore this Genome Browser session:
+
+https://genome.ucsc.edu/cgi-bin/hgTracks?hgS_doOtherUser=submit&hgS_otherUserName=hensley&hgS_otherUserSessionName=bioinf545
+
+It includes tracks for CTCF binding sites found by FIMO, bound CTCF
+motifs predicted by CENTIPEDE with GM12878 ATAC-seq data, ATAC-seq
+peaks called on GM12878 ATAC-seq data, and ChIP-seq signal for CTCF
+binding sites.
