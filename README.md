@@ -46,22 +46,21 @@ Set a few environment variables to reduce typing later:
 
 ```bash
 export LAB_DATA="/class/data/bio545/atac-seq-lab"
-export REF_DIR=${LAB_DATA}
+export REF_DIR=${LAB_DATA}/data
 export REF=hg19
-export PICARD_JAR="${LAB_DATA}/picard.jar"
+export PICARD_JAR="${LAB_DATA}/bin/picard.jar"
 export R_LIBS_SITE=${LAB_DATA}/R/%p/%v
 ```
 
-```bash
-cp ${LAB_DATA}/*.R ${LAB_DIR}
-cp ${LAB_DATA}/*.gz ${LAB_DIR}
-cp ${LAB_DATA}/*.meme ${LAB_DIR}
+```Bash
+cp ${LAB_DATA}/data/*.gz ${LAB_DIR}
+cp ${LAB_DATA}/data/*.meme ${LAB_DIR}
 ```
 
 Make sure we're running the right versions of the tools:
 
 ```bash
-export PATH=${LAB_DATA}:${LAB_DATA}/ve/bin:$PATH
+export PATH=${LAB_DATA}/bin:${LAB_DATA}/ve/bin:$PATH
 ```
 
 ## Retrieval of sequence data
@@ -358,7 +357,6 @@ this is how you would create a track for the called peaks:
 ```bash
 LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
 bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
-
 ```
 
 First open a web browser and navigate to the following URL:
@@ -467,7 +465,7 @@ predictably enough, `run_centipede.R`. Here's the command to predict
 bound TFs in the lab data:
 
 ```bash
-Rscript run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
+run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
 ```
 
 The arguments are the matrix, the list of motif locations, the name of
