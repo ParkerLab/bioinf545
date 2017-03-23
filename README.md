@@ -94,6 +94,7 @@ ls -lFh
 You should see files that look like this:
 
 ```bash
+# NOTE: do not copy/paste this block. This is only an example of output.
 total 21M
 -r--r--r--. 1 scjp users  19M Mar 23 11:50 chr20.fa.gz
 -r--r--r--. 1 scjp users  684 Mar 23 11:50 CTCF_known2.meme
@@ -127,6 +128,8 @@ The run ID at the bottom of the page, `SRR891268`, is what you need to
 download the data. You also need to have the NCBI SRA tools installed,
 so you can use fastq-dump:
 
+You do not need to do this step for the lab.
+
 ```bash
 fastq-dump --gzip --split-files SRR891268
 ```
@@ -146,16 +149,22 @@ data. To check the ATAC-seq reads, run:
 fastqc SRR891268.1.fq.gz
 ```
 
-When it completes, open the HTML report in a web browser with:
+When it completes, copy the file to your maching and open the HTML report in a web browser.
+You can execute a command _similar_ to this from your own Desktop directory:
+Note to substitute USERNAME with your own user name.
 
 ```bash
-firefox SRR891268.1_fastqc.html
+scp USERNAME@bcs2.bioinformatics.med.umich.edu:/users/USERNAME/bioinf545/labs/atac-seq/SRR891268.1_fastqc.html .
 ```
 
-Note the section on adapter contamination. How does this look?
+Note the report section on per-base content. Do you think TN5 has integration bias?
+
+Don't worry about the GC content. We're using too little data to get a reliable curve.
+
+Note the section on adapter contamination. How does this look? Is it expected?
 
 When you're done reviewing, exit the browser. In real work you'd of
-course check both files, but in the interest of time we'll move on.
+course check both read 1 and 2 files, but in the interest of time we'll move on.
 
 ## <a name="trimming"></a>Trimming adapter sequence from reads
 
