@@ -93,6 +93,7 @@ ls -lFh
 
 You should see files that look like this:
 
+```bash
 total 21M
 -r--r--r--. 1 scjp users  19M Mar 23 11:50 chr20.fa.gz
 -r--r--r--. 1 scjp users  684 Mar 23 11:50 CTCF_known2.meme
@@ -100,7 +101,7 @@ total 21M
 -r--r--r--. 1 scjp users  63K Mar 23 11:50 NA12878.CTCF_known2.scores.chr1.gz
 -r--r--r--. 1 scjp users 496K Mar 23 11:50 SRR891268.1.fq.gz
 -r--r--r--. 1 scjp users 512K Mar 23 11:50 SRR891268.2.fq.gz
-
+```
 
 If you're curious about how to retrieve published sequence data, read
 on, otherwise skip to [Basic quality checking with FastQC](#fastqc).
