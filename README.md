@@ -481,11 +481,11 @@ zcat NA12878.CTCF_known2.centipede.bed.gz | awk 'BEGIN{IFS="\t"; OFS="\t"} $NF >
 We have again created a browser track with predicted CTCF binding
 sites in the entire hg19 reference, not just chromosome 1. If you add
 this track to your earlier Genome Browser session, you should see
-several sites around the `rs12946510` SNP where CTCF is predicted to
+several sites around the GCK locus where CTCF is predicted to
 be bound. Just paste this into the custom track submission form:
 
 ```
-browser position chr17:37,887,327-37,937,426
+browser position chr7:44,116,289-44,266,468
 track name="Predicted bound CTCF motifs in GM12878" description="Predicted bound CTCF motifs in GM12878" visibility=full color=0,128,64 alwaysZero=on maxHeightPixels=50:50:50 windowingFunction=mean smoothingWindow=3
 https://theparkerlab.med.umich.edu/gb/tracks/bioinf545/SRR891268.CTCF_known2.bound.bed
 ```
@@ -493,9 +493,9 @@ https://theparkerlab.med.umich.edu/gb/tracks/bioinf545/SRR891268.CTCF_known2.bou
 To see all of this put together in the entire human reference genome,
 explore this Genome Browser session:
 
-https://genome.ucsc.edu/cgi-bin/hgTracks?hgS_doOtherUser=submit&hgS_otherUserName=hensley&hgS_otherUserSessionName=bioinf545
+https://genome.ucsc.edu/cgi-bin/hgTracks?hgS_doOtherUser=submit&hgS_otherUserName=Scjparker&hgS_otherUserSessionName=bf545%2DATAC%2Dseq%2Dall
 
 It includes tracks for CTCF binding sites found by FIMO, bound CTCF
 motifs predicted by CENTIPEDE with GM12878 ATAC-seq data, ATAC-seq
 peaks called on GM12878 ATAC-seq data, and ChIP-seq signal for CTCF
-binding sites.
+in GM12878.
