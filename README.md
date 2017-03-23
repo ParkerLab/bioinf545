@@ -216,6 +216,7 @@ You can exit from the less program by pressing `q`.
 
 With the adapter cleanup complete, we can finally align the reads to a
 reference genome and see where the ATAC-seq transpositions happened.
+Note this is a long command. Make sure to copy the entire line.
 
 ```bash
 bwa mem -t 4 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
@@ -345,7 +346,7 @@ tools can use to annotate aligned reads.
   structural variation. We're not going to base peak calls on them.
 
 Finally, we use a basic quality filter, `-q 30`, to request
-high-quality alignments.
+high mapping-quality alignments.
 
 ## <a name="callingpeaks"></a>Calling peaks on the aligned reads
 
@@ -384,12 +385,10 @@ LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broa
 bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
 ```
 
-First open a web browser and navigate to the following URL:
-http://research.nhgri.nih.gov/manuscripts/Collins/islet_chromatin/
+First open a web browser and navigate to the following custom browser URL:
+https://genome.ucsc.edu/cgi-bin/hgTracks?hgS_doOtherUser=submit&hgS_otherUserName=Scjparker&hgS_otherUserSessionName=bf545%2DATAC%2Dseq
 
-At the bottom of the page, click on the track hub link.
-
-This should open to the familiar GCK locus from lecture.
+This should open to the GCK locus. GCK is an islet-specific gene that is not "on" in GM12878 cells.
 
 Now scroll down and click on "add custom tracks" and then in the "Paste URL or data" box, paste the following track:
 
@@ -397,48 +396,23 @@ Now scroll down and click on "add custom tracks" and then in the "Paste URL or d
 track type=bigWig name="GM12878 ATAC-seq peaks" description="GM12878 ATAC-seq peaks" visibility=full color=255,128,0 alwaysZero=on maxHeightPixels=50:50:50 windowingFunction=mean smoothingWindow=3 bigDataUrl=https://theparkerlab.med.umich.edu/gb/tracks/bioinf545/gm12878.broad_treat_pileup.bw
 ```
 
-Then click on "submit", then click "go" to return to the GCK locus now with GM12878 ATAC-seq data. How does the GM12878 chromatin accessibility look at GCK? At the two flanking genes, POLD2 and YKT6? Can you see the promoter region?
+Then click on "submit", then click "go" to return to the GCK locus now with GM12878 ATAC-seq data. How does the GM12878 chromatin accessibility look at GCK? At the two flanking genes, POLD2 and YKT6? Can you see the open chromatin promoter regions?
 
-Now in the search menu, look for the following SNP ID:
-
-`rs12946510`
-
-Click on the first link to the NHGRI GWAS catalog hit. Then zoom out
-100x so you can see a clear picture of the GM12878 chromatin
-accessibility at this SNP. Does it look like it occurs in an active
-regulatory element in GM12878? If you click on the SNP rsID it will
-take you to a page that explains the association. What is this SNP
-associated with? Does it make sense that it occurs in an active
-regulatory element for an immune cell type?
-
-
-Note that the UCSC Genome Browser bigWig track format is explained here:
-https://genome.ucsc.edu/goldenpath/help/bigWig.html
-
-
-Now compare your ATAC-seq browser results to what you can find at HaploReg:
-http://www.broadinstitute.org/mammals/haploreg/haploreg.php
-
-Enter the SNP rsID in the query box and submit. How many SNPs are
-closely linked to this single SNP? What are the reference and
-alternate alleles (bases) for this SNP? Where does this SNP occur
-relative to genes? Next click on our SNP rsID of interest and explore
-the chromatin annotations across cells/tissues.
 
 ## <a name="footprinting">Predicting transcription factor binding footprints</a>
 
 One of the questions that ATAC-seq helps answer is, "Where might
-transcription be happening in interesting cell types?" If we can
+transcription factor binding be happening in interesting cell types?" If we can
 correlate regions of open chromatin revealed by ATAC-seq with
 predicted transcription factor (TF) binding sites, we can identify
-genes that are active in a cell.
+regions that are potentially bound in a cell.
 
 Transcription factors usually bind to specific sequence motifs, which
 can be described with a position weight matrix (PWM). We can use these
-PWMs to search the reference genome for all of a transcription
+PWMs to search the genome for all of a transcription
 factor's potential binding sites. For this, we use a program called
 FIMO from the MEME Suite (http://meme-suite.org/doc/fimo.html). FIMO
-builds a file of motif locations scored according to their PWM.
+builds a file of motif locations scored according to their PWM match.
 
 As input, FIMO needs a FASTA file containing the reference in which
 you want to find motifs, a MEME-format file describing motifs, and
@@ -452,7 +426,7 @@ To create the background file, run `fasta-get-markov`:
 zcat chr20.fa.gz | fasta-get-markov /dev/stdin chr20.bg
 ```
 
-To find motifs:
+To scan the CTCF motif across chr20 and find sequence matches:
 
 ```bash
 zcat chr20.fa.gz | fimo -bgfile chr20.bg CTCF_known2.meme /dev/stdin
