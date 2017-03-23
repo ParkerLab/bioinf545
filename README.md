@@ -20,8 +20,7 @@ a browser track for the UCSC Genome Browser. We'll also predict the
 locations of bound transcription factors.
 
 The commands you'll run will be set in code blocks with a gray
-background and a `$` shell prompt at the start of each command, like
-this:
+background, like this:
 
 ```bash
 echo "This is a command."
