@@ -27,14 +27,13 @@ echo "This is a command."
 echo "This is another command."
 ```
 
-To run each command, copy the entire line _after_ the `$` and paste it
+To run each command, copy the entire line and paste it
 into a shell window on the class workstation.
 
 ## <a name="setup"></a>Setting up your workspace
 
 Open up a terminal session and create a working directory under your
-home directory by copying and pasting the commands after the dollar
-signs below:
+home directory by copying and pasting the commands below:
 
 ```bash
 export LAB_DIR=~/bioinf545/labs/atac-seq
@@ -49,11 +48,6 @@ export REF_DIR=${LAB_DATA}/data
 export REF=hg19
 export PICARD_JAR="${LAB_DATA}/bin/picard.jar"
 export R_LIBS_SITE=${LAB_DATA}/R/%p/%v
-```
-
-```Bash
-cp ${LAB_DATA}/data/*.gz ${LAB_DIR}
-cp ${LAB_DATA}/data/*.meme ${LAB_DIR}
 ```
 
 Make sure we're running the right versions of the tools:
@@ -85,6 +79,28 @@ They contain reads from sample SRR891268 that aligned (mostly) to
 chromosome 1.
 
 Copy them from the class data directory to your working directory:
+
+```bash
+cp ${LAB_DATA}/data/*.gz ${LAB_DIR}
+cp ${LAB_DATA}/data/*.meme ${LAB_DIR}
+```
+
+Now list your directory contents to make sure the files are there:
+
+```bash
+ls -lFh
+```
+
+You should see files that look like this:
+
+total 21M
+-r--r--r--. 1 scjp users  19M Mar 23 11:50 chr20.fa.gz
+-r--r--r--. 1 scjp users  684 Mar 23 11:50 CTCF_known2.meme
+-r--r--r--. 1 scjp users 730K Mar 23 11:50 NA12878.CTCF_known2.chr1.bed.gz
+-r--r--r--. 1 scjp users  63K Mar 23 11:50 NA12878.CTCF_known2.scores.chr1.gz
+-r--r--r--. 1 scjp users 496K Mar 23 11:50 SRR891268.1.fq.gz
+-r--r--r--. 1 scjp users 512K Mar 23 11:50 SRR891268.2.fq.gz
+
 
 If you're curious about how to retrieve published sequence data, read
 on, otherwise skip to [Basic quality checking with FastQC](#fastqc).
