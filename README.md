@@ -460,8 +460,17 @@ make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTC
 ```
 
 Finally, we've written an R script to invoke CENTIPEDE called,
-predictably enough, `run_centipede.R`. Here's the command to predict
-bound TFs in the lab data:
+predictably enough, `run_centipede.R`. 
+
+First, make sure you have the R CENTIPEDE package installed. Start R and then install the package:
+
+```bash
+R
+install.packages("CENTIPEDE", repos="http://R-Forge.R-project.org") 
+q("no")
+```
+
+Here's the command to predict bound TFs in the lab data:
 
 ```bash
 run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
