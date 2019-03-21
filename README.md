@@ -219,7 +219,7 @@ reference genome and see where the ATAC-seq transpositions happened.
 Note this is a long command. Make sure to copy the entire line.
 
 ```bash
-bwa mem -t 4 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
+bwa mem -t 4 -I 200,200,5000 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
 ```
 
 We specify bwa's `mem` algorithm, and give it both files of paired-end
