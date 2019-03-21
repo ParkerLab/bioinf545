@@ -154,7 +154,7 @@ You can execute a command _similar_ to this from your own Desktop directory:
 Note to substitute USERNAME with your own user name.
 
 ```bash
-scp USERNAME@bcs2.bioinformatics.med.umich.edu:/users/USERNAME/bioinf545/labs/atac-seq/SRR891268.1_fastqc.html .
+scp username@classroom.dcmb.med.umich.edu:/home/USERNAME/bioinf545/labs/atac-seq/SRR891268.1_fastqc.html .
 ```
 
 Note the report section on per-base content. Do you think TN5 has integration bias?
