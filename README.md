@@ -381,6 +381,7 @@ on the entire data, not the subset we're working with in the lab, but
 this is how you would create a track for the called peaks:
 
 ```bash
+module load kentutils
 LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
 bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
 ```
