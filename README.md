@@ -247,7 +247,7 @@ usually when a program doesn't recognize `-`; `/dev/stdin` just looks
 like a regular file to them.
 
 The `-I 200,200,5000` option tells BWA to assume the insert size distribution
-has: mean=200, SD=200, max=200. The default BWA behavior is to calculate insert
+has: mean=200bp, SD=200bp, max=5000bp. The default BWA behavior is to calculate insert
 size metrics from the first batch of reads it sees. If your input fastq is pre-
 sorted (perhaps from a previous analysis) such that reads from peaks are nearby 
 you could observe an abundance of small fragment sizes in the intitial read 
@@ -363,16 +363,18 @@ high mapping-quality alignments.
 
 We'll use [MACS2](https://github.com/taoliu/MACS) to "call peaks" in the aligned reads -- we're looking
 for regions with lots of transposition events, which indicate open
-chromatin.
+chromatin. First we need to convert the BAM file to a BED file, then run MACS2.
 
 ```bash
-macs2 callpeak -t SRR891268.pruned.bam -n SRR891268.broad -g hs -q 0.05 --nomodel --shift -100 --extsize 200 -B --broad
+bedtools bamtobed -i SRR891268.pruned.bam | sort -k1,1 -k2,2n > SRR891268.pruned.bed 
+macs2 callpeak -t SRR891268.pruned.bed -f BED -n SRR891268.broad -g hs -q 0.05 --nomodel --shift -100 --extsize 200 -B --broad --keep-dup all
 ```
 
 The arguments are:
 
 - `-t`: the "treatment" file -- the input, which is the sifted BAM
   file from the last step
+- `-F`: specifies the input file format, in this case BED
 - `-n`: the name of the experiment, which is used to name files
 - `-g`: the genome's mappable size; 'hs' is an alias for the human
   genome's mappable size
@@ -384,6 +386,10 @@ The arguments are:
 - `-B`: Create bedGraph files we'll use to create a browser track.
 - `--broad`: request that adjacent enriched regions be combined into
   broad regions
+- `--keep-dup`: specified how many reads that have the same start site
+  to keep. Since we already used Picard to identify duplicates and 
+  samtools to filter them out, any remaining read start sites should
+  be retained. So we specify `all` here.
 
 ## <a name="browsertrack"></a>Creating a browser track so we can look at the peaks in the UCSC Genome Browser
 
