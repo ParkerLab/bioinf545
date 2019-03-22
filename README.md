@@ -246,6 +246,17 @@ output. You may also see standard input specified as `/dev/stdin`,
 usually when a program doesn't recognize `-`; `/dev/stdin` just looks
 like a regular file to them.
 
+The `-I 200,200,5000` option tells BWA to assume the insert size distribution
+has: mean=200, SD=200, max=200. The default BWA behavior is to calculate insert
+size metrics from the first batch of reads it sees. If your input fastq is pre-
+sorted (perhaps from a previous analysis) such that reads from peaks are nearby 
+you could observe an abundance of small fragment sizes in the intitial read 
+batch used to estimate the insert sizes. These skewed small insert size 
+summary statistics are then used by BWA to calculate read mapping qualities and 
+could result in penalities to longer insert fragments. By forcing the expected 
+insert size summary statistics with the `-I` option, we can correct for such a
+potential bias against longer fragments.
+
 Finally, note the `-t 4` option: we're telling bwa to use four
 processing threads to align the reads faster. We also tell samtools to
 use four threads for sorting and compressing with the `-@ 4` option.
