@@ -189,7 +189,6 @@ module load python
 git clone https://github.com/ParkerLab/atactk
 pip install ./atactk
 atactk/scripts/trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
-trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
 ```
 
 There may be an error message and it's fine.
