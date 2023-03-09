@@ -32,18 +32,23 @@ into a shell window on the class workstation.
 
 ## <a name="setup"></a>Setting up your workspace
 
+Log into Great Lakes and start up an interactive job session.
+
 Open up a terminal session and create a working directory under your
-home directory by copying and pasting the commands below:
+home directory on Great Lakes by copying and pasting the commands below:
 
 ```bash
-export LAB_DIR=~/bioinf545/labs/atac-seq
+salloc --account=bioinf545w23_class --partition=standard --time=02:00:00 --ntasks=1 --cpus-per-task=2 --nodes=1 --mem=8GB
+user=`whoami`
+echo $user
+export LAB_DIR=/nfs/turbo/dcmb-class/bioinf545/sec001/${user}/bf545-atac-seq
 mkdir -p $LAB_DIR && cd $LAB_DIR
 ```
 
 Set a few environment variables to reduce typing later:
 
 ```bash
-export LAB_DATA="/class/data/bio545/atac-seq-lab"
+export LAB_DATA="/nfs/turbo/dcmb-class/bioinf545/shared/atac-seq-lab"
 export REF_DIR=${LAB_DATA}/data
 export REF=hg19
 export PICARD_JAR="${LAB_DATA}/bin/picard.jar"
@@ -146,15 +151,18 @@ FastQC performs some basic quality control checks on raw sequence
 data. To check the ATAC-seq reads, run:
 
 ```bash
+module load Bioinformatics
+module load Bioinformatics  gcc/10.3.0-k2osx5y
+module load fastqc
 fastqc SRR891268.1.fq.gz
 ```
 
-When it completes, copy the file to your maching and open the HTML report in a web browser.
+When it completes, copy the file to your local maching and open the HTML report in a web browser.
 You can execute a command _similar_ to this from your own Desktop directory:
 Note to substitute USERNAME with your own user name.
 
 ```bash
-scp username@classroom.dcmb.med.umich.edu:/home/USERNAME/bioinf545/labs/atac-seq/SRR891268.1_fastqc.html .
+scp username@greatlakes.arc-ts.umich.edu:/nfs/turbo/dcmb-class/bioinf545/sec001/USERNAME/bf545-atac-seq/SRR891268.1_fastqc.html .
 ```
 
 Note the report section on per-base content. Do you think TN5 has integration bias?
@@ -177,9 +185,14 @@ used. Other tools generally need to be told, or can sometimes guess,
 using a list of known adapters. The command line:
 
 ```bash
+module load python
+git clone https://github.com/ParkerLab/atactk
+pip install ./atactk
+atactk/scripts/trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
 trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
 ```
 
+There may be an error message and it's fine.
 When it's done, compare the first few reads in the original and
 trimmed files of first reads:
 
@@ -219,6 +232,8 @@ reference genome and see where the ATAC-seq transpositions happened.
 Note this is a long command. Make sure to copy the entire line.
 
 ```bash
+module load bwa
+module load samtools
 bwa mem -t 4 -I 200,200,5000 ${REF_DIR}/${REF} SRR891268.1.trimmed.fastq.gz SRR891268.2.trimmed.fastq.gz | samtools sort -@ 4 -O bam -T SRR891268.tmp -o SRR891268.bam -
 ```
 
@@ -366,7 +381,9 @@ for regions with lots of transposition events, which indicate open
 chromatin. First we need to convert the BAM file to a BED file, then run MACS2.
 
 ```bash
+module load bedtools2
 bedtools bamtobed -i SRR891268.pruned.bam | sort -k1,1 -k2,2n > SRR891268.pruned.bed 
+module load py-macs2/2.2.4-4abp2hm
 macs2 callpeak -t SRR891268.pruned.bed -f BED -n SRR891268.broad -g hs -q 0.05 --nomodel --shift -100 --extsize 200 -B --broad --keep-dup all
 ```
 
@@ -398,9 +415,10 @@ on the entire data, not the subset we're working with in the lab, but
 this is how you would create a track for the called peaks:
 
 ```bash
-module load kentutils
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+chmod 775 bedGraphToBigWig
 LC_COLLATE=C sort -k1,1 -k2,2n SRR891268.broad_treat_pileup.bdg > SRR891268.broad_treat_pileup.sorted.bdg
-bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
+./bedGraphToBigWig SRR891268.broad_treat_pileup.sorted.bdg ${REF_DIR}/${REF}.chrom_sizes SRR891268.broad_peaks.bw
 ```
 
 First open a web browser and navigate to the following custom browser URL:
@@ -414,7 +432,7 @@ Now scroll down and click on "add custom tracks" and then in the "Paste URL or d
 track type=bigWig name="GM12878 ATAC-seq peaks" description="GM12878 ATAC-seq peaks" visibility=full color=255,128,0 alwaysZero=on maxHeightPixels=50:50:50 windowingFunction=mean smoothingWindow=3 bigDataUrl=https://theparkerlab.med.umich.edu/gb/tracks/bioinf545/gm12878.broad_treat_pileup.bw
 ```
 
-Then click on "submit", then click "go" to return to the GCK locus now with GM12878 ATAC-seq data. How does the GM12878 chromatin accessibility look at GCK? At the two flanking genes, POLD2 and YKT6? Can you see the open chromatin promoter regions?
+Then click on "submit", then click "go to first annotation" to return to the GCK locus now with GM12878 ATAC-seq data. How does the GM12878 chromatin accessibility look at GCK? At the two flanking genes, POLD2 and YKT6? Can you see the open chromatin promoter regions?
 
 
 ## <a name="footprinting">Predicting transcription factor binding footprints</a>
