@@ -186,9 +186,8 @@ using a list of known adapters. The command line:
 
 ```bash
 module load python
-git clone https://github.com/ParkerLab/atactk
-pip install ./atactk
-atactk/scripts/trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
+module load atactk
+trim_adapters SRR891268.1.fq.gz SRR891268.2.fq.gz
 ```
 
 There may be an error message and it's fine.
@@ -491,7 +490,7 @@ from chromosome 1:
 
 ```bash
 samtools index SRR891268.pruned.bam
-./atactk/scripts/make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
+make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
 ```
 
 Finally, we've written an R script to invoke CENTIPEDE called,
