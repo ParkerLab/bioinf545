@@ -491,24 +491,17 @@ from chromosome 1:
 
 ```bash
 samtools index SRR891268.pruned.bam
-make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
+module load python
+./atactk/scripts/make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
 ```
 
 Finally, we've written an R script to invoke CENTIPEDE called,
 predictably enough, `run_centipede.R`. 
 
-First, make sure you have the R CENTIPEDE package installed. Start R and then install the package:
-
-```bash
-R
-install.packages("CENTIPEDE", repos="http://R-Forge.R-project.org") 
-q("no")
-```
-
 Here's the command to predict bound TFs in the lab data:
 
 ```bash
-run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
+${LAB_DATA}/bin/run_centipede.R NA12878.CTCF_known2.matrix.gz NA12878.CTCF_known2.chr1.bed.gz NA12878.CTCF_known2.centipede.bed.gz 8
 ```
 
 The arguments are the matrix, the list of motif locations, the name of
