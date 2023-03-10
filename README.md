@@ -491,7 +491,6 @@ from chromosome 1:
 
 ```bash
 samtools index SRR891268.pruned.bam
-module load python
 ./atactk/scripts/make_cut_matrix -v -d -p 2 -f 3 -F 4 -F 8 -q 30 SRR891268.pruned.bam NA12878.CTCF_known2.chr1.bed.gz | gzip -c > NA12878.CTCF_known2.matrix.gz
 ```
 
