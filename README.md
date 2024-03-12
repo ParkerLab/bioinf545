@@ -38,7 +38,7 @@ Open up a terminal session and create a working directory under your
 home directory on Great Lakes by copying and pasting the commands below:
 
 ```bash
-salloc --account=bioinf545w23_class --partition=standard --time=02:00:00 --ntasks=1 --cpus-per-task=2 --nodes=1 --mem=8GB
+salloc --account=bioinf545w24_class --partition=standard --time=02:00:00 --ntasks=1 --cpus-per-task=2 --nodes=1 --mem=8GB
 user=`whoami`
 echo $user
 export LAB_DIR=/nfs/turbo/dcmb-class/bioinf545/sec001/${user}/bf545-atac-seq
